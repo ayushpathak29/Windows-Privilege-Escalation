@@ -13,17 +13,19 @@ In this, we will start with an low privilege shell on the box, and will try to f
 - [Impacket](https://github.com/SecureAuthCorp/impacket)
 
 ## Contents
-- [Escalation Path Password and Port Forwarding](https://github.com/ayushpathak29/Windows-Privilege-Escalation#Escalation-Path-Password--Port-Forwarding)
-- [Escalation Path Windows Subsystem for Linux (WSL)](https://github.com/ayushpathak29/Windows-Privilege-Escalation#Escalation-Path-Windows-Subsystem-for-Linux-(WSL))
-- [Token Impersonation](https://github.com/ayushpathak29/Windows-Privilege-Escalation#Token-Impersonation)
+- [Escalation Path Password and Port Forwarding](https://github.com/ayushpathak29/Windows-Privilege-Escalation#escalation-path-password--port-forwarding)
+- [Escalation Path Windows Subsystem for Linux (WSL)](https://github.com/ayushpathak29/Windows-Privilege-Escalation#escalation-path-windows-subsystem-for-linux)
+- [Token Impersonation](https://github.com/ayushpathak29/Windows-Privilege-Escalation#token-impersonation)
 - [Runas](https://github.com/ayushpathak29/Windows-Privilege-Escalation#runas)
-- [Registry (Autorun)](https://github.com/ayushpathak29/Windows-Privilege-Escalation#Registry-(Autorun))
-- [Registry (AlwaysInstallElevated)](https://github.com/ayushpathak29/Windows-Privilege-Escalation#Registry-(AlwaysInstallElevated))
-- [](https://github.com/ayushpathak29/Windows-Privilege-Escalation)
-- [](https://github.com/ayushpathak29/Windows-Privilege-Escalation)
-- [](https://github.com/ayushpathak29/Windows-Privilege-Escalation)
+- [Registry (Autorun)](https://github.com/ayushpathak29/Windows-Privilege-Escalation#autorun)
+- [Registry (AlwaysInstallElevated)](https://github.com/ayushpathak29/Windows-Privilege-Escalation#alwaysinstallelevated)
+- [DLL Hijacking](https://github.com/ayushpathak29/Windows-Privilege-Escalation#dll-hijacking)
+- [Binpath](https://github.com/ayushpathak29/Windows-Privilege-Escalation#binpath)
+- [Unquoted path](https://github.com/ayushpathak29/Windows-Privilege-Escalation#unquoted-path)
+- [File Permission](https://github.com/ayushpathak29/Windows-Privilege-Escalation#fileperm)
+- [Services](https://github.com/ayushpathak29/Windows-Privilege-Escalation#services)
 
-### Escalation Path Password and Port Forwarding
+### Escalation Path Password & Port Forwarding
 
 1. Lets start enumerating the box with an low priviliged shell.
 ![Initial shell](images/chatterbox/2.png)
@@ -62,6 +64,7 @@ reg query HKCU /f password /t REG_SZ /s
 Great, we found out cleartext password of Admin User.
 
 6. Now we will use [plink](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) to port forward that internal SMB service. First of all, let's download the plink file into our machine.
+
 ![06](images/chatterbox/7.png)
 
 7. Now forward port to your kali machine by typing the following command in the machine.
@@ -69,16 +72,18 @@ Great, we found out cleartext password of Admin User.
 This will allow us to access the SMB service from our kali machine.
 
 8. Now you will get into your own terminal. Enter the following command and see that we are succesfully connected to the port.
+
 ![07](images/chatterbox/9.png)
 
 9. Now, we'll use winexe tool to execute commands on windows box and try to login into the machine with the password we got earlier from Winlogon.
+
 ![07](images/chatterbox/10.png)
 
 And we successully got loged-in as a administrator and escalated our privileges.
 
 ### Escalation Path Windows Subsystem for Linux (WSL)
 
-1. 1. Lets start enumerating the box with an low priviliged shell.
+1. Lets start enumerating the box with an low priviliged shell.
 ![Initial shell](images/secnotes/1.png)
 
 2. Let's find out if there is any bash.exe or wsl.exe hidden in the machine.
@@ -132,18 +137,21 @@ There are also other metasploit modules available which can perform this task au
 
 1. Here, starting with basic enumeration, type `cmdkey /list`.The Windows [Cmdkey](https://docs.microsoft.com/en-us/windows-server/administration/windows-commands/cmdkey) command creates, lists and deletes stored user names and passwords from a computer.
 ![Initial shell](images/access/1.png)
+
 We can see there are stored credentials of Administrator user. So we can use something like [runas](https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-server-2012-r2-and-2012/cc771525(v=ws.11)) and use these stored credentials to run a command on machine as a admin user.
 
 2. Let's download the [nc.exe](https://github.com/int0x33/nc.exe?files=1) into the windows machine so that we can coonect to our kali box from this machine. You can find nc.exe on your kali box at "/usr/share/windows-resources/binaries/nc.exe" or simply run `locate nc.exe`.
+
 ![Initial shell](images/access/2.png)
 
-3. Let's create a bind shell and put it into a file, and then run it with runas command to execute our shell as a administrator.
+3. Let's create a reverse shell and put it into a file, and then run it with runas command to execute our shell as a administrator.
+
 ![Initial shell](images/access/3.png)
 
 4. Great, we got a connection on our listener and `whoami` tells us that we are "system user". So, here we escalated our privileges with the help of stored credentials and runas utility of windows.
 ![Initial shell](images/access/4.png)
 
-## Registry (Autorun)
+## Autorun
 1. Open command prompt and type: ```C:\Users\User\Desktop\Tools\Autoruns\Autoruns64.exe``` or run Sherlock, you'll find a autoron program in “C:\Program Files\Autorun Program\program.exe”
 
 ![0](images/autorun/1.png)
@@ -174,7 +182,7 @@ notice that the “Everyone” user group has “FILE_ALL_ACCESS” permission o
 ![0](images/autorun/6.png)
 
 - - -
-### Registry (AlwaysInstallElevated)
+### AlwaysInstallElevated
 1. Open command prompt and type ```reg query HKLM\Software\Policies\Microsoft\Windows\Installer```, notice that “AlwaysInstallElevated” value is 1.
 
 2. Open command prompt and type ```reg query HKCU\Software\Policies\Microsoft\Windows\Installer```, notice that “AlwaysInstallElevated” value is 1.
@@ -330,7 +338,7 @@ Notice that the output suggests that the user has the “SERVICE_CHANGE_CONFIG�
 ![0](images/unquote/4.png)
 
 
-### Services (Registry)
+### Services
 1. Getting a Powershell from initial shell.
 ![0](images/reg/1.png)
 ![0](images/reg/2.png)
